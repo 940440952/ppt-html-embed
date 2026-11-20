@@ -1,7 +1,7 @@
 /* 离线缓存：联网打开过一次之后，插件本身和 Office 组件都从缓存加载。
  * 策略：先用缓存（快、离线可用），同时在后台联网更新缓存。
  */
-const CACHE = 'ppt-html-embed-v1';
+const CACHE = 'ppt-html-embed-v2';
 const OFFICE_JS = 'https://appsforoffice.microsoft.com/lib/1/hosted/office.js';
 const CORE = ['./content.html', './app.js', './style.css', './icon-32.png', './icon-80.png'];
 
@@ -31,6 +31,10 @@ self.addEventListener('fetch', (event) => {
   const isPage = req.mode === 'navigate' || req.destination === 'document';
   const key = isPage ? new Request(url.origin + url.pathname) : req;
 
+  // 插件自己的文件：联网时优先用最新版（3 秒超时），断网时用缓存
+  // Office 组件：直接用缓存，后台更新
+  const sameOrigin = url.origin === self.location.origin;
+
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const cached = await cache.match(key, { ignoreSearch: isPage });
@@ -39,11 +43,18 @@ self.addEventListener('fetch', (event) => {
       return res;
     }).catch(() => null);
 
+    if (sameOrigin) {
+      const timeout = new Promise((resolve) => setTimeout(() => resolve(null), 3000));
+      const res = await Promise.race([network, timeout]);
+      if (res) return res;
+      if (cached) { event.waitUntil(network); return cached; }
+      return (await network) || Response.error();
+    }
+
     if (cached) {
       event.waitUntil(network);
       return cached;
     }
-    const res = await network;
-    return res || Response.error();
+    return (await network) || Response.error();
   })());
 });

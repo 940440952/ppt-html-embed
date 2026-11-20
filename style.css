@@ -23,14 +23,16 @@ button.link { border: 0; background: none; color: #2f6fec; margin-top: 8px; }
 .status { min-height: 1.5em; margin: 10px 0 0; color: #57606a; font-size: 13px; }
 .status.error { color: #cf222e; }
 
-.viewer { position: relative; height: 100%; }
-.viewer iframe { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
-.toolbar { position: absolute; top: 6px; right: 6px; display: flex; gap: 4px; align-items: center;
-  padding: 4px; border-radius: 8px; background: rgba(255,255,255,.92); box-shadow: 0 1px 4px rgba(0,0,0,.25);
-  opacity: 0; transition: opacity .15s; font-size: 12px; }
-.viewer:hover .toolbar { opacity: 1; }
-.toolbar button { padding: 2px 8px; font-size: 12px; }
-.toolbar .name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  color: #57606a; padding: 0 4px; }
+.viewer { position: relative; height: 100%; overflow: hidden; }
+.viewer iframe { position: absolute; top: 0; left: 0; display: block; width: 100%; height: 100%;
+  border: 0; background: #fff; transform-origin: 0 0; }
+/* 工具栏：右上角一个小把手，鼠标移上去才展开 */
+.toolbar { position: absolute; top: 4px; right: 4px; z-index: 2; display: flex; gap: 3px; align-items: center;
+  width: 14px; height: 14px; padding: 0; border-radius: 7px; overflow: hidden;
+  background: rgba(127,127,127,.4); font-size: 11px; }
+.toolbar button { display: none; padding: 1px 7px; font-size: 11px; line-height: 1.6; }
+.toolbar:hover { width: auto; height: auto; padding: 3px; background: rgba(255,255,255,.95);
+  box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+.toolbar:hover button { display: inline-block; }
 /* 放映时隐藏工具栏 */
 body.slideshow .toolbar { display: none; }

@@ -7,6 +7,7 @@
 
   const KEY_HTML = 'htmlContent';
   const KEY_NAME = 'htmlName';
+  const KEY_W = 'designWidth';
   const WARN_BYTES = 2 * 1024 * 1024; // Office 对加载项设置大小有限制，超过 2MB 给出提示
 
   const $ = (id) => document.getElementById(id);
@@ -36,16 +37,74 @@
     const ls = (() => { try { return window.localStorage; } catch (e) { return null; } })();
     return {
       get: (k) => { try { const v = ls && ls.getItem('pptHtml:' + k); return v == null ? mem[k] : v; } catch (e) { return mem[k]; } },
-      set: (k, v) => { mem[k] = v; try { ls && ls.setItem('pptHtml:' + k, v); } catch (e) { /* 忽略 */ } },
+      set: (k, v) => {
+        mem[k] = v;
+        try { if (!ls) return; if (v == null) ls.removeItem('pptHtml:' + k); else ls.setItem('pptHtml:' + k, v); } catch (e) { /* 忽略 */ }
+      },
       save: () => Promise.resolve(),
     };
   }
 
   // ---------- 显示 ----------
+  // 网页按固定宽度 designW 排版，再整体等比缩放到框的大小。
+  // 这样不管框多大、编辑还是放映，看起来都一样。
+  let designW = null;
+
+  function viewSize() {
+    const r = els.viewer.getBoundingClientRect();
+    return { w: Math.max(r.width, 1), h: Math.max(r.height, 1) };
+  }
+
+  function layout() {
+    const { w, h } = viewSize();
+    const W = designW || w;
+    const s = w / W;
+    els.frame.style.width = W + 'px';
+    els.frame.style.height = (h / s) + 'px';
+    els.frame.style.transform = `scale(${s})`;
+  }
+
+  // 用 setTimeout 而不是 requestAnimationFrame：后台或隐藏时 rAF 可能不触发
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 60));
+
+  function saveDesignWidth() {
+    store.set(KEY_W, designW ? Math.round(designW) : null);
+    store.save().catch(() => { /* 放映时可能无法保存，忽略 */ });
+  }
+
+  // 从框的实际宽度开始，逐步加大排版宽度，直到整页内容都装得下
+  async function fitToContent() {
+    let doc = null;
+    try { doc = els.frame.contentDocument; } catch (e) { /* 无法访问时跳过 */ }
+    if (!doc || !doc.documentElement) return;
+    const { w } = viewSize();
+    let W = w;
+    for (let i = 0; i < 12; i++) {
+      designW = W;
+      layout();
+      await settle();
+      const viewH = parseFloat(els.frame.style.height);
+      const contentH = Math.max(doc.documentElement.scrollHeight, doc.body ? doc.body.scrollHeight : 0);
+      if (contentH <= viewH + 2 || W >= 4000) break;
+      W = Math.min(4000, Math.ceil(W * Math.max(1.05, Math.sqrt(contentH / viewH))));
+    }
+    saveDesignWidth();
+  }
+
+  function zoom(factor) {
+    const { w } = viewSize();
+    designW = Math.max(200, Math.min(6000, (designW || w) / factor));
+    layout();
+    saveDesignWidth();
+  }
+
   function showViewer(html, name) {
     els.picker.hidden = true;
     els.viewer.hidden = false;
-    els.docName.textContent = name || '';
+    els.viewer.title = name || '';
+    designW = Number(store.get(KEY_W)) || null;
+    layout();
+    els.frame.onload = () => { if (!designW) setTimeout(fitToContent, 400); };
     els.frame.srcdoc = html;
   }
 
@@ -71,6 +130,7 @@
     }
     store.set(KEY_HTML, html);
     store.set(KEY_NAME, name || '');
+    store.set(KEY_W, null); // 新内容重新自动适应
     try {
       await store.save();
     } catch (err) {
@@ -265,6 +325,19 @@
 
     $('btnReload').onclick = () => { const h = store.get(KEY_HTML); if (h) { els.frame.srcdoc = ''; els.frame.srcdoc = h; } };
     $('btnChange').onclick = () => showPicker(true);
+    $('btnSmaller').onclick = () => zoom(1 / 1.15);
+    $('btnBigger').onclick = () => zoom(1.15);
+    $('btnFit').onclick = () => fitToContent();
+    if (window.ResizeObserver) new ResizeObserver(() => { if (!els.viewer.hidden) layout(); }).observe(els.viewer);
+    window.addEventListener('resize', () => { if (!els.viewer.hidden) layout(); });
+    // 兜底：PowerPoint 切换放映时不一定触发 resize 事件，定时检查框的尺寸
+    let lastSize = '';
+    setInterval(() => {
+      if (els.viewer.hidden) return;
+      const { w, h } = viewSize();
+      const size = w + 'x' + h;
+      if (size !== lastSize) { lastSize = size; layout(); }
+    }, 500);
     els.btnBack.onclick = () => { const h = store.get(KEY_HTML); if (h) showViewer(h, store.get(KEY_NAME)); };
 
     // 拖放文件
