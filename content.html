@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HTML 嵌入</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <!-- 空状态：选择 HTML -->
+  <section id="picker" class="picker" hidden>
+    <div class="card">
+      <h1>嵌入 HTML</h1>
+      <p class="hint">HTML 会直接保存进这个 PPT 文件，放映时可以交互。</p>
+      <div class="buttons">
+        <button id="btnFile" class="primary">选择 HTML 文件</button>
+        <button id="btnFolder">选择文件夹</button>
+        <button id="btnPaste">粘贴代码</button>
+      </div>
+      <p class="hint small">HTML 引用了同目录的图片、CSS、JS 时，请选择整个文件夹，插件会自动打包。</p>
+      <div id="pasteBox" class="paste" hidden>
+        <textarea id="pasteArea" placeholder="把 HTML 代码粘贴到这里"></textarea>
+        <div class="buttons">
+          <button id="btnPasteOk" class="primary">使用这段代码</button>
+          <button id="btnPasteCancel">取消</button>
+        </div>
+      </div>
+      <p id="status" class="status" role="status"></p>
+      <button id="btnBack" class="link" hidden>返回当前内容</button>
+    </div>
+    <input id="fileInput" type="file" accept=".html,.htm,text/html" hidden>
+    <input id="folderInput" type="file" webkitdirectory multiple hidden>
+  </section>
+
+  <!-- 显示状态 -->
+  <section id="viewer" class="viewer" hidden>
+    <iframe id="frame" title="嵌入的 HTML"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-pointer-lock allow-downloads"
+      allow="fullscreen; clipboard-read; clipboard-write; autoplay"></iframe>
+    <div id="toolbar" class="toolbar">
+      <span id="docName" class="name"></span>
+      <button id="btnReload" title="重新运行">刷新</button>
+      <button id="btnChange" title="换一个 HTML">更换</button>
+    </div>
+  </section>
+</body>
+</html>

@@ -1,0 +1,4 @@
+body { font-family: -apple-system, "PingFang SC", sans-serif; text-align: center; padding: 20px;
+  background: url(bg.svg) center / cover; }
+h1 { display: flex; gap: 8px; align-items: center; justify-content: center; }
+button { font-size: 20px; padding: 8px 24px; border-radius: 8px; border: 0; background: #2f6fec; color: #fff; }
