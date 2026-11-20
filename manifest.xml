@@ -4,13 +4,13 @@
            xsi:type="ContentApp">
   <Id>AF015CA1-1705-46AA-9A13-45681656C411</Id>
   <Version>1.0.0.0</Version>
-  <ProviderName>https://localhost:8765</ProviderName>
+  <ProviderName>940440952</ProviderName>
   <DefaultLocale>zh-CN</DefaultLocale>
   <DisplayName DefaultValue="HTML 嵌入"/>
   <Description DefaultValue="把本地 HTML 嵌入幻灯片，内容保存在 PPT 里，放映时可交互。"/>
-  <IconUrl DefaultValue="https://localhost:8765/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://localhost:8765/icon-80.png"/>
-  <SupportUrl DefaultValue="https://localhost:8765/"/>
+  <IconUrl DefaultValue="https://940440952.github.io/ppt-html-embed/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://940440952.github.io/ppt-html-embed/icon-80.png"/>
+  <SupportUrl DefaultValue="https://940440952.github.io/ppt-html-embed/"/>
   <AppDomains>
     <AppDomain>https://appsforoffice.microsoft.com</AppDomain>
   </AppDomains>
@@ -18,7 +18,7 @@
     <Host Name="Presentation"/>
   </Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://localhost:8765/content.html"/>
+    <SourceLocation DefaultValue="https://940440952.github.io/ppt-html-embed/content.html"/>
     <RequestedWidth>640</RequestedWidth>
     <RequestedHeight>360</RequestedHeight>
   </DefaultSettings>
